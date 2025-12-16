@@ -58,26 +58,15 @@ class DataManager(private val context: Context) {
     }
 
     fun advanceEnemy() {
-        scope.launch { // Launching the suspend function in the coroutine scope
+        scope.launch {
             context.enemyIndexDataStore.updateData { currentEnemyIndex ->
-                // 1. Calculate the new index
                 var newIndex = currentEnemyIndex.index + 1
-
-                // 2. Check for list bounds
                 if (newIndex >= listOfEnemies.size) {
-                    // Reset to the beginning of the list to loop the enemies
                     newIndex = 0
-                    // OR: newIndex = listOfEnemies.lastIndex if you want to stop on the final enemy
                 }
-
-                // 3. Update the in-memory index
                 index = newIndex
-
-                // 4. Reset the health of the newly advanced enemy
                 val nextEnemy = listOfEnemies[index]
-                nextEnemy.setEnemyHealth(nextEnemy.health) // Resets observable health to max health
-
-                // 5. Build and return the new DataStore state
+                nextEnemy.setEnemyHealth(nextEnemy.health)
                 currentEnemyIndex.toBuilder()
                     .setIndex(newIndex)
                     .build()
