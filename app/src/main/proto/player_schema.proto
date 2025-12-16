@@ -10,6 +10,7 @@ message Player {
   int32 agility = 4;
   int32 intelligence = 5;
   int32 experience = 6;
+  int32 level = 7;
 }
 
 message EnemyIndex {

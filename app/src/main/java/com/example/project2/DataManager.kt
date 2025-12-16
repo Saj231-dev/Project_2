@@ -7,7 +7,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
+import kotlin.random.Random
 
 val Context.playerDataStore by dataStore(
     fileName = "player_schema.pb",
@@ -25,6 +25,7 @@ class DataManager(private val context: Context) {
 
     val listOfEnemies = mutableStateListOf<Enemy>(
         Enemy("Slime", 5, 25, 5, 2, 1, 1),
+        Enemy("Wolf", 7, 20, 5, 1, 1, 1)
     )
     init {
         scope.launch {
@@ -45,6 +46,7 @@ class DataManager(private val context: Context) {
                         .setAgility(1)
                         .setIntelligence(1)
                         .setExperience(0)
+                        .setLevel(1)
                         .build()
                 } else {
                     currentPlayer
@@ -114,9 +116,52 @@ class DataManager(private val context: Context) {
         }
     }
 
+    fun setExperience(value: Int) {
+        scope.launch {
+            context.playerDataStore.updateData { player ->
+                player.toBuilder().setExperience(value).build()
+            }
+        }
+    }
+
+    fun setLevel(value: Int) {
+        scope.launch {
+            context.playerDataStore.updateData { player ->
+                player.toBuilder().setLevel(value).build()
+            }
+        }
+    }
+
+    fun levelUp(player: Player) {
+        val expNeeded = player.level * 15
+        if (player.experience >= expNeeded) {
+            val newLevel = player.level + 1
+            val newAtk = player.attack + 2
+            val newHp = player.health + 10
+            val randomStat = Random.nextInt(2)
+            when(randomStat) {
+                0 -> {
+                    val newDef = player.defense + 1
+                    setDefense(newDef)
+                }
+                1 -> {
+                    val newAgil = player.agility + 1
+                    setAgility(newAgil)
+                }
+                2 -> {
+                    val newInt = player.intelligence + 1
+                    setIntelligence(newInt)
+                }
+            }
+            setAttack(newAtk)
+            setHealth(newHp)
+            setLevel(newLevel)
+            setExperience(0)
+        }
+    }
     fun playerAttack(player: Player, enemy: Enemy): Int {
         val damage = (player.attack - enemy.defense).coerceAtLeast(0)
-        enemy.takeDamage(damage, this)
+        enemy.takeDamage(damage, this, player)
         return damage
     }
 }

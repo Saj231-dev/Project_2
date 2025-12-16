@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,12 +50,10 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainLayout() {
     val context = LocalContext.current
-    val dataManager = DataManager(context)
+    val dataManager = remember { DataManager(context) }
     val playerState = dataManager.playerFlow.collectAsState(initial = Player.getDefaultInstance())
     val player = playerState.value
-    LaunchedEffect(null) {
-        dataManager.initializeDefaultPlayer()
-    }
+    var damageDealt by remember { mutableIntStateOf(1) }
     Surface(
         color = Color.Cyan
     ) {
@@ -70,6 +69,11 @@ fun MainLayout() {
             Spacer(Modifier.height(16.dp))
             Text(
                 text = "Enemy Health: ${dataManager.getEnemy().observableHealth}",
+                fontSize = 32.sp
+            )
+            Spacer(Modifier.height(16.dp))
+            Text(
+                text = "Player Level: ${player.level}",
                 fontSize = 32.sp
             )
             Spacer(Modifier.height(16.dp))
@@ -98,11 +102,11 @@ fun MainLayout() {
             Spacer(Modifier.height(16.dp))
             Button(
                 onClick = {
-                    dataManager.playerAttack(player, dataManager.getEnemy())
+                    damageDealt = dataManager.playerAttack(player, dataManager.getEnemy())
                 }
             ) {
                 Text(
-                    text = "This button attacks ${dataManager.getEnemy().name}, and you did damage",
+                    text = "This button attacks ${dataManager.getEnemy().name}, and you do $damageDealt damage",
                     fontSize = 24.sp
                 )
             }
