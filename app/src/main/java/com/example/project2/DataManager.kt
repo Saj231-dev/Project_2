@@ -10,8 +10,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 
 val Context.playerDataStore by dataStore(
-    fileName = "player.pb",
+    fileName = "player_schema.pb",
     serializer = PlayerSerializer
+)
+val Context.enemyIndexDataStore by dataStore(
+    fileName = "enemy_index_data.pb",
+    serializer = EnemyIndexSerializer
 )
 
 class DataManager(private val context: Context) {
@@ -22,18 +26,18 @@ class DataManager(private val context: Context) {
     val listOfEnemies = mutableStateListOf<Enemy>(
         Enemy("Slime", 5, 25, 5, 2, 1, 1),
     )
-
-    private fun setPlayerStats(player: Player) {
+    init {
         scope.launch {
-            context.playerDataStore.updateData { player }
+            context.enemyIndexDataStore.data.collect { savedIndex ->
+                index = savedIndex.index
+            }
         }
+        initializeDefaultPlayer()
     }
-
     fun initializeDefaultPlayer() {
         scope.launch {
-            val currentPlayer = playerFlow.first()
-            if (currentPlayer == Player.getDefaultInstance()) {
-                setPlayerStats(
+            context.playerDataStore.updateData { currentPlayer ->
+                if (currentPlayer == Player.getDefaultInstance()) {
                     Player.newBuilder()
                         .setHealth(50)
                         .setAttack(3)
@@ -42,17 +46,43 @@ class DataManager(private val context: Context) {
                         .setIntelligence(1)
                         .setExperience(0)
                         .build()
-                )
+                } else {
+                    currentPlayer
+                }
             }
         }
     }
 
     fun getEnemy(): Enemy {
-        return listOfEnemies[index]
+        return listOfEnemies[index.coerceIn(0, listOfEnemies.lastIndex)]
     }
 
     fun advanceEnemy() {
-        index++
+        scope.launch { // Launching the suspend function in the coroutine scope
+            context.enemyIndexDataStore.updateData { currentEnemyIndex ->
+                // 1. Calculate the new index
+                var newIndex = currentEnemyIndex.index + 1
+
+                // 2. Check for list bounds
+                if (newIndex >= listOfEnemies.size) {
+                    // Reset to the beginning of the list to loop the enemies
+                    newIndex = 0
+                    // OR: newIndex = listOfEnemies.lastIndex if you want to stop on the final enemy
+                }
+
+                // 3. Update the in-memory index
+                index = newIndex
+
+                // 4. Reset the health of the newly advanced enemy
+                val nextEnemy = listOfEnemies[index]
+                nextEnemy.setEnemyHealth(nextEnemy.health) // Resets observable health to max health
+
+                // 5. Build and return the new DataStore state
+                currentEnemyIndex.toBuilder()
+                    .setIndex(newIndex)
+                    .build()
+            }
+        }
     }
 
     fun setHealth(value: Int) {

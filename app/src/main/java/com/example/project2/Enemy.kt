@@ -32,7 +32,6 @@ data class Enemy(
         }
     }
 
-
     fun enemyAttack(player: Player, dataManager: DataManager): Int {
         val damage = (this.attack - player.defense).coerceIn(0, player.health)
         val newHealth = player.health - damage
