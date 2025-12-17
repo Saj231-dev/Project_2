@@ -1,16 +1,10 @@
 package com.example.project2
 
-import android.content.Context
-import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
-data class Enemy(
+data class Enemy (
     val name: String,
     val experience: Int,
     var health: Int,

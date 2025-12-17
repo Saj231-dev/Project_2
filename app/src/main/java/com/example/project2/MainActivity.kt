@@ -1,6 +1,5 @@
 package com.example.project2
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -24,6 +23,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,7 +53,7 @@ fun MainLayout() {
     val dataManager = remember { DataManager(context) }
     val playerState = dataManager.playerFlow.collectAsState(initial = Player.getDefaultInstance())
     val player = playerState.value
-    var damageDealt by remember { mutableIntStateOf(1) }
+    var damageDealt by rememberSaveable { mutableIntStateOf(1) }
     Surface(
         color = Color.Cyan
     ) {
@@ -74,6 +74,21 @@ fun MainLayout() {
             Spacer(Modifier.height(16.dp))
             Text(
                 text = "Player Level: ${player.level}",
+                fontSize = 32.sp
+            )
+            Spacer(Modifier.height(16.dp))
+            Text(
+                text = "Player Defense: ${player.defense}",
+                fontSize = 32.sp
+            )
+            Spacer(Modifier.height(16.dp))
+            Text(
+                text = "Player Agility: ${player.agility}",
+                fontSize = 32.sp
+            )
+            Spacer(Modifier.height(16.dp))
+            Text(
+                text = "Player Intelligence: ${player.intelligence}",
                 fontSize = 32.sp
             )
             Spacer(Modifier.height(16.dp))

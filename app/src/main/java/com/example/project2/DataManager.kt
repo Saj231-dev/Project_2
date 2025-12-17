@@ -23,8 +23,8 @@ class DataManager(private val context: Context) {
     private var index = 0
     val playerFlow: Flow<Player> = context.playerDataStore.data
     private val listOfEnemies = mutableStateListOf<Enemy>(
-        Enemy("Slime", 5, 25, 5, 2, 1, 1),
-        Enemy("Wolf", 7, 20, 5, 1, 1, 1)
+        Enemy("Wolf", 5, 25, 5, 2, 1, 1),
+        Enemy("Slime", 7, 20, 5, 1, 1, 1)
     )
     init {
         scope.launch {
@@ -137,7 +137,7 @@ class DataManager(private val context: Context) {
             val newLevel = player.level + 1
             val newAtk = player.attack + 2
             val newHp = player.health + 10
-            val randomStat = Random.nextInt(2)
+            val randomStat = Random.nextInt(3)
             when(randomStat) {
                 0 -> {
                     val newDef = player.defense + 1
