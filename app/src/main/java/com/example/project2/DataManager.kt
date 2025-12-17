@@ -22,8 +22,7 @@ class DataManager(private val context: Context) {
     private val scope = CoroutineScope(Dispatchers.IO)
     private var index = 0
     val playerFlow: Flow<Player> = context.playerDataStore.data
-
-    val listOfEnemies = mutableStateListOf<Enemy>(
+    private val listOfEnemies = mutableStateListOf<Enemy>(
         Enemy("Slime", 5, 25, 5, 2, 1, 1),
         Enemy("Wolf", 7, 20, 5, 1, 1, 1)
     )
