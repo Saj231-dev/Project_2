@@ -110,7 +110,7 @@ fun MainLayout() {
                 }
             ) {
                 Text(
-                    text = "This button summons a slime that attacks you, and his name is ${dataManager.getEnemy().name}",
+                    text = "This button summons an enemy that attacks you, and his name is ${dataManager.getEnemy().name}",
                     fontSize = 16.sp
                 )
             }
@@ -118,6 +118,17 @@ fun MainLayout() {
             Button(
                 onClick = {
                     damageDealt = dataManager.playerAttack(player, dataManager.getEnemy())
+                }
+            ) {
+                Text(
+                    text = "This button attacks ${dataManager.getEnemy().name}, and you do $damageDealt damage",
+                    fontSize = 24.sp
+                )
+            }
+            Spacer(Modifier.height(16.dp))
+            Button(
+                onClick = {
+
                 }
             ) {
                 Text(

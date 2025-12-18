@@ -20,11 +20,18 @@ val Context.enemyIndexDataStore by dataStore(
 
 class DataManager(private val context: Context) {
     private val scope = CoroutineScope(Dispatchers.IO)
+
     private var index = 0
+
     val playerFlow: Flow<Player> = context.playerDataStore.data
+
     private val listOfEnemies = mutableStateListOf<Enemy>(
-        Enemy("Wolf", 5, 25, 5, 2, 1, 1),
-        Enemy("Slime", 7, 20, 5, 1, 1, 1)
+        Enemy("Wolf", 5, 25, 5, 2, 1),
+        Enemy("Slime", 7, 20, 5, 1, 1)
+    )
+
+    private val listOfSpells = listOf<Spells>(
+        Spells("Fireball", 10, 10, )
     )
     init {
         scope.launch {
