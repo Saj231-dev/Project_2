@@ -26,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,7 +38,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -55,9 +55,7 @@ fun MainLayout() {
     val navController = rememberNavController()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val dataManager = remember {
-        DataManager(context)
-    }
+    val dataManager = remember { DataManager(context) }
 
     NavHost(
         navController = navController,
@@ -223,8 +221,8 @@ fun MenuScreen(onStartGame: () -> Unit) {
 fun BattleScreen(dataManager: DataManager, onVictory: () -> Unit) {
     val player by dataManager.playerFlow.collectAsState(Player.getDefaultInstance())
     val currentEnemy = dataManager.getEnemy()
-    var isPlayerTurn by remember { mutableStateOf(true) }
-    var battleLog by remember { mutableStateOf("Your turn!") }
+    var isPlayerTurn by rememberSaveable { mutableStateOf(true) }
+    var battleLog by rememberSaveable { mutableStateOf("Your turn!") }
 
     LaunchedEffect(currentEnemy.observableHealth) {
         if (currentEnemy.observableHealth <= 0) {

@@ -30,8 +30,9 @@ class DataManager(private val context: Context) {
     val playerFlow: Flow<Player> = context.playerDataStore.data
 
     private val listOfEnemies = mutableStateListOf<Enemy>(
-        Enemy("Wolf", 5, 25, 5, 2, 1),
-        Enemy("Slime", 7, 20, 5, 1, 1)
+        Enemy("Slime", 5, 20, 2, 1, 1),
+        Enemy("Wolf", 7, 25, 4, 2, 2),
+        Enemy("Goblin", 10, 40, 6, 2, 2)
     )
     private val listOfSpells = listOf<Spells>(
         Spells("Fireball", 20, 10),
