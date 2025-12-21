@@ -30,13 +30,13 @@ class DataManager(private val context: Context) {
     val playerFlow: Flow<Player> = context.playerDataStore.data
 
     private val listOfEnemies = mutableStateListOf<Enemy>(
-        Enemy("Slime", 5, 20, 2, 1, 1),
-        Enemy("Wolf", 7, 25, 4, 2, 2),
-        Enemy("Goblin", 10, 40, 6, 2, 2)
+        Enemy("Slime", 10, 25, 3, 1, 1),
+        Enemy("Wolf", 12, 30, 4, 2, 2),
+        Enemy("Goblin", 15, 40, 4, 1, 5)
     )
     private val listOfSpells = listOf<Spells>(
-        Spells("Fireball", 20, 10),
-        Spells("Magic Missile", 12, 5)
+        Spells("Fireball", 10, 10),
+        Spells("Magic Missile", 15, 20)
     )
     init {
         scope.launch {
@@ -103,7 +103,7 @@ class DataManager(private val context: Context) {
                 .setIntelligence(intel)
                 .setDefense(def)
                 .setAgility(agi)
-                .setHealth(50 + (level * 10))
+                .setHealth(40 + (level * 10))
                 .setMana(intel * 10)
                 .build()
         }
@@ -120,6 +120,30 @@ class DataManager(private val context: Context) {
             currentEnemyIndex.toBuilder()
                 .setIndex(newIndex)
                 .build()
+        }
+    }
+
+    fun resetGame() {
+        scope.launch {
+            context.playerDataStore.updateData {
+                Player.newBuilder()
+                    .setHealth(50)
+                    .setAttack(3)
+                    .setDefense(1)
+                    .setAgility(1)
+                    .setIntelligence(1)
+                    .setExperience(0)
+                    .setLevel(1)
+                    .setMana(10)
+                    .build()
+            }
+            context.enemyIndexDataStore.updateData {
+                it.toBuilder().setIndex(0).build()
+            }
+            index = 0
+            listOfEnemies.forEach { enemy ->
+                enemy.setEnemyHealth(enemy.health)
+            }
         }
     }
 
@@ -189,7 +213,7 @@ class DataManager(private val context: Context) {
 
     fun playerAttack(player: Player, enemy: Enemy): Int {
         val damage = (player.attack - enemy.defense).coerceAtLeast(0)
-        enemy.takeDamage(damage, this, player)
+        enemy.takeDamage(damage)
         return damage
     }
 

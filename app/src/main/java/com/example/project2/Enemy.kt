@@ -19,7 +19,7 @@ data class Enemy (
         observableHealth = value
     }
 
-    fun takeDamage(damage: Int, dataManager: DataManager, player: Player) {
+    fun takeDamage(damage: Int) {
         val dodgeChance = Random.nextInt(51)
         if (dodgeChance > this.agility) {
             observableHealth = (observableHealth - damage).coerceAtLeast(0)

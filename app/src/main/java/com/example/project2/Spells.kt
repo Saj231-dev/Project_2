@@ -11,7 +11,7 @@ class Spells(
             dataManager.setMana(newMana)
 
             val damageDealt = this.damage * player.intelligence
-            enemy.takeDamage(damageDealt, dataManager, player)
+            enemy.takeDamage(damageDealt)
 
             return true
         }

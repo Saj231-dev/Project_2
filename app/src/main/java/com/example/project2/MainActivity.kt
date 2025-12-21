@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -61,33 +62,23 @@ fun MainLayout() {
         navController = navController,
         startDestination = "menu"
     ) {
-        composable(
-            route = "menu"
-        ) {
-            MenuScreen(
-                onStartGame = {
-                    navController.navigate("battle")
-                }
-            )
+        composable("menu") {
+            MenuScreen {
+                navController.navigate("battle")
+            }
         }
-        composable(
-            route = "battle"
-        ) {
+        composable("battle") {
             BattleScreen(
                 dataManager = dataManager,
                 onVictory = {
                     scope.launch {
                         dataManager.handleVictory(dataManager.getEnemy())
-                        navController.navigate("rest") {
-                            popUpTo("battle") { inclusive = true }
-                        }
+                        navController.navigate("rest")
                     }
                 }
             )
         }
-        composable(
-            route = "rest"
-        ) {
+        composable("rest") {
             RestScreen(
                 dataManager = dataManager,
                 onContinue = {
@@ -102,9 +93,7 @@ fun MainLayout() {
 
 @Composable
 fun RestScreen(dataManager: DataManager, onContinue: () -> Unit) {
-    val player by dataManager.playerFlow.collectAsState(
-        initial = Player.getDefaultInstance()
-    )
+    val player by dataManager.playerFlow.collectAsState(Player.getDefaultInstance())
     val nextEnemy = dataManager.getEnemy()
 
     Surface(
@@ -221,9 +210,16 @@ fun MenuScreen(onStartGame: () -> Unit) {
 fun BattleScreen(dataManager: DataManager, onVictory: () -> Unit) {
     val player by dataManager.playerFlow.collectAsState(Player.getDefaultInstance())
     val currentEnemy = dataManager.getEnemy()
+    var spellNum by rememberSaveable { mutableIntStateOf(0) }
+    var preservedHealth by rememberSaveable { mutableIntStateOf(currentEnemy.observableHealth) }
     var isPlayerTurn by rememberSaveable { mutableStateOf(true) }
     var battleLog by rememberSaveable { mutableStateOf("Your turn!") }
-
+    LaunchedEffect(null) {
+        currentEnemy.setEnemyHealth(preservedHealth)
+    }
+    LaunchedEffect(currentEnemy.observableHealth) {
+        preservedHealth = currentEnemy.observableHealth
+    }
     LaunchedEffect(currentEnemy.observableHealth) {
         if (currentEnemy.observableHealth <= 0) {
             battleLog = "${currentEnemy.name} defeated!"
@@ -231,7 +227,6 @@ fun BattleScreen(dataManager: DataManager, onVictory: () -> Unit) {
             onVictory()
         }
     }
-
     LaunchedEffect(isPlayerTurn) {
         if (!isPlayerTurn && currentEnemy.observableHealth > 0 && player.health > 0) {
             battleLog = "${currentEnemy.name} is attacking..."
@@ -282,12 +277,10 @@ fun BattleScreen(dataManager: DataManager, onVictory: () -> Unit) {
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Bold
                 )
-
                 Spacer(Modifier.height(16.dp))
-
                 Button(
                     onClick = {
-                        dataManager.initializeDefaultPlayer()
+                        dataManager.resetGame()
                         isPlayerTurn = true
                         battleLog = "Revived! Your turn!"
                     },
@@ -322,31 +315,41 @@ fun BattleScreen(dataManager: DataManager, onVictory: () -> Unit) {
                             text = "Physical Attack"
                         )
                     }
-
-                    Spacer(
-                        modifier = Modifier.height(8.dp)
-                    )
-
+                    Spacer(Modifier.height(8.dp))
                     Button(
                         onClick = {
                             dataManager.castSpell(
-                                index = 0,
+                                index = spellNum,
                                 player = player,
                                 enemy = currentEnemy
                             )
-                            battleLog = "You cast ${dataManager.getSpell(0).name}!"
+                            battleLog = "You cast ${dataManager.getSpell(spellNum).name}!"
                             if (currentEnemy.observableHealth > 0) {
                                 isPlayerTurn = false
                             }
                         },
-                        enabled = isPlayerTurn && player.mana >= 10 && currentEnemy.observableHealth > 0,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF6200EE)
-                        ),
+                        enabled = isPlayerTurn && player.mana >= dataManager.getSpell(spellNum).cost && currentEnemy.observableHealth > 0,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = "${dataManager.getSpell(0).name} (${dataManager.getSpell(0).cost} MP)"
+                            text = "${dataManager.getSpell(spellNum).name} (${dataManager.getSpell(spellNum).cost} MP)"
+                        )
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    Button(
+                        onClick = {
+                            spellNum++
+                            if (spellNum > 1 && spellNum % 2 == 0) {
+                                spellNum = 0
+                            } else if (spellNum > 1) {
+                                spellNum = 1
+                            }
+                        },
+                        enabled = isPlayerTurn,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "Cycle Spells"
                         )
                     }
                 }
@@ -389,7 +392,9 @@ fun EnemySection(enemy: Enemy) {
 
 @Composable
 fun PlayerStatsSection(player: Player) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Text(
             text = "Your Level: ${player.level}",
             color = Color.White
@@ -417,7 +422,9 @@ fun PlayerStatsSection(player: Player) {
         )
         val maxMana = (player.intelligence * 10f).coerceAtLeast(1f)
         LinearProgressIndicator(
-            progress = { (player.mana.toFloat() / maxMana).coerceIn(0f, 1f) },
+            progress = {
+                (player.mana.toFloat() / maxMana).coerceIn(0f, 1f)
+            },
             modifier = Modifier.height(10.dp).fillMaxWidth(),
             color = Color.Cyan
         )
