@@ -1,7 +1,10 @@
 package com.example.project2
 
 import android.content.Context
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.setValue
 import androidx.datastore.dataStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -21,7 +24,8 @@ val Context.enemyIndexDataStore by dataStore(
 class DataManager(private val context: Context) {
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    private var index = 0
+    var index by mutableIntStateOf(0)
+        private set
 
     val playerFlow: Flow<Player> = context.playerDataStore.data
 
@@ -29,9 +33,9 @@ class DataManager(private val context: Context) {
         Enemy("Wolf", 5, 25, 5, 2, 1),
         Enemy("Slime", 7, 20, 5, 1, 1)
     )
-
     private val listOfSpells = listOf<Spells>(
-        Spells("Fireball", 10, 10, )
+        Spells("Fireball", 20, 10),
+        Spells("Magic Missile", 12, 5)
     )
     init {
         scope.launch {
@@ -53,6 +57,7 @@ class DataManager(private val context: Context) {
                         .setIntelligence(1)
                         .setExperience(0)
                         .setLevel(1)
+                        .setMana(10)
                         .build()
                 } else {
                     currentPlayer
@@ -65,20 +70,55 @@ class DataManager(private val context: Context) {
         return listOfEnemies[index.coerceIn(0, listOfEnemies.lastIndex)]
     }
 
-    fun advanceEnemy() {
-        scope.launch {
-            context.enemyIndexDataStore.updateData { currentEnemyIndex ->
-                var newIndex = currentEnemyIndex.index + 1
-                if (newIndex >= listOfEnemies.size) {
-                    newIndex = 0
+    fun getSpell(index: Int): Spells {
+        return listOfSpells[index.coerceIn(0, listOfSpells.lastIndex)]
+    }
+
+    suspend fun handleVictory(enemy: Enemy) {
+        context.playerDataStore.updateData { player ->
+            var exp = player.experience + enemy.experience
+            var level = player.level
+            var atk = player.attack
+            var intel = player.intelligence
+            var def = player.defense
+            var agi = player.agility
+
+            val expNeeded = level * 15
+            if (exp >= expNeeded) {
+                level += 1
+                exp = 0
+                atk += 2
+                when (Random.nextInt(3)) {
+                    0 -> def += 1
+                    1 -> agi += 1
+                    2 -> intel += 1
                 }
-                index = newIndex
-                val nextEnemy = listOfEnemies[index]
-                nextEnemy.setEnemyHealth(nextEnemy.health)
-                currentEnemyIndex.toBuilder()
-                    .setIndex(newIndex)
-                    .build()
             }
+
+            player.toBuilder()
+                .setExperience(exp)
+                .setLevel(level)
+                .setAttack(atk)
+                .setIntelligence(intel)
+                .setDefense(def)
+                .setAgility(agi)
+                .setHealth(50 + (level * 10))
+                .setMana(intel * 10)
+                .build()
+        }
+
+        context.enemyIndexDataStore.updateData { currentEnemyIndex ->
+            var newIndex = currentEnemyIndex.index + 1
+            if (newIndex >= listOfEnemies.size) {
+                newIndex = 0
+            }
+            index = newIndex
+            val nextEnemy = listOfEnemies[index]
+            nextEnemy.setEnemyHealth(nextEnemy.health)
+
+            currentEnemyIndex.toBuilder()
+                .setIndex(newIndex)
+                .build()
         }
     }
 
@@ -138,37 +178,23 @@ class DataManager(private val context: Context) {
         }
     }
 
-    fun levelUp(player: Player) {
-        val expNeeded = player.level * 15
-        if (player.experience >= expNeeded) {
-            val newLevel = player.level + 1
-            val newAtk = player.attack + 2
-            val newHp = player.health + 10
-            val randomStat = Random.nextInt(3)
-            when(randomStat) {
-                0 -> {
-                    val newDef = player.defense + 1
-                    setDefense(newDef)
-                }
-                1 -> {
-                    val newAgil = player.agility + 1
-                    setAgility(newAgil)
-                }
-                2 -> {
-                    val newInt = player.intelligence + 1
-                    setIntelligence(newInt)
-                }
+    fun setMana(value: Int) {
+        scope.launch {
+            context.playerDataStore.updateData { player ->
+                player.toBuilder().setMana(value).build()
             }
-            setAttack(newAtk)
-            setHealth(newHp)
-            setLevel(newLevel)
-            setExperience(0)
         }
     }
+
     fun playerAttack(player: Player, enemy: Enemy): Int {
         val damage = (player.attack - enemy.defense).coerceAtLeast(0)
         enemy.takeDamage(damage, this, player)
         return damage
+    }
+
+    fun castSpell(index: Int, player: Player, enemy: Enemy) {
+        val spell = listOfSpells.getOrNull(index)
+        spell?.useSpell(enemy, player, this)
     }
 }
 

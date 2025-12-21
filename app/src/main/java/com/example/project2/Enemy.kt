@@ -24,16 +24,6 @@ data class Enemy (
         if (dodgeChance > this.agility) {
             observableHealth = (observableHealth - damage).coerceAtLeast(0)
         }
-        if (observableHealth == 0) {
-            giveExperience(dataManager, player)
-            dataManager.advanceEnemy()
-            dataManager.levelUp(player)
-        }
-    }
-
-    fun giveExperience(dataManager: DataManager, player: Player) {
-        val newExperience = this.experience + player.experience
-        dataManager.setExperience(newExperience)
     }
 
     fun enemyAttack(player: Player, dataManager: DataManager): Int {

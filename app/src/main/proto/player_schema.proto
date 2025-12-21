@@ -11,6 +11,7 @@ message Player {
   int32 intelligence = 5;
   int32 experience = 6;
   int32 level = 7;
+  int32 mana = 8;
 }
 
 message EnemyIndex {

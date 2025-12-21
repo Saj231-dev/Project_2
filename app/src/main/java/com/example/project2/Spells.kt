@@ -3,17 +3,18 @@ package com.example.project2
 class Spells(
     val name: String,
     val damage: Int,
-    val cost: Int,
-    player: Player
+    val cost: Int
 ) {
-    var mana = player.intelligence * 10
+    fun useSpell(enemy: Enemy, player: Player, dataManager: DataManager): Boolean {
+        if (player.mana >= this.cost) {
+            val newMana = player.mana - this.cost
+            dataManager.setMana(newMana)
 
-    fun useSpell(enemy: Enemy) {
-        when (this.name) {
-            "Fireball" -> {
-                mana -= 10
-            }
+            val damageDealt = this.damage * player.intelligence
+            enemy.takeDamage(damageDealt, dataManager, player)
+
+            return true
         }
-        enemy.observableHealth -= this.damage
+        return false
     }
 }
