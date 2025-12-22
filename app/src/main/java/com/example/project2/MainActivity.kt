@@ -57,7 +57,6 @@ fun MainLayout() {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val dataManager = remember { DataManager(context) }
-
     NavHost(
         navController = navController,
         startDestination = "menu"
@@ -95,7 +94,6 @@ fun MainLayout() {
 fun RestScreen(dataManager: DataManager, onContinue: () -> Unit) {
     val player by dataManager.playerFlow.collectAsState(Player.getDefaultInstance())
     val nextEnemy = dataManager.getEnemy()
-
     Surface(
         color = Color(0xFF1E1E1E),
         modifier = Modifier.fillMaxSize()
@@ -113,11 +111,7 @@ fun RestScreen(dataManager: DataManager, onContinue: () -> Unit) {
                 color = Color.Yellow,
                 fontWeight = FontWeight.Bold
             )
-
-            Spacer(
-                modifier = Modifier.height(24.dp)
-            )
-
+            Spacer(Modifier.height(24.dp))
             Card(
                 colors = CardDefaults.cardColors(
                     containerColor = Color(0xFF2C2C2C)
@@ -137,26 +131,17 @@ fun RestScreen(dataManager: DataManager, onContinue: () -> Unit) {
                     )
                 }
             }
-
-            Spacer(
-                modifier = Modifier.height(32.dp)
-            )
-
+            Spacer(Modifier.height(32.dp))
             Text(
                 text = "Next Enemy: ${nextEnemy.name}",
                 color = Color.Red,
                 fontSize = 24.sp
             )
-
             Text(
                 text = "HP: ${nextEnemy.health} | ATK: ${nextEnemy.attack}",
                 color = Color.White
             )
-
-            Spacer(
-                modifier = Modifier.height(48.dp)
-            )
-
+            Spacer(Modifier.height(48.dp))
             Button(
                 onClick = onContinue,
                 modifier = Modifier
@@ -193,7 +178,7 @@ fun MenuScreen(onStartGame: () -> Unit) {
                 fontWeight = FontWeight.Bold,
                 color = Color.Green
             )
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(Modifier.height(32.dp))
             Button(
                 onClick = onStartGame,
                 modifier = Modifier
@@ -256,20 +241,16 @@ fun BattleScreen(dataManager: DataManager, onVictory: () -> Unit) {
                 .padding(24.dp)
         ) {
             EnemySection(currentEnemy)
-
             Spacer(Modifier.height(24.dp))
-
             Text(
                 text = battleLog,
                 color = if (player.health <= 0) Color.Red else Color.White,
                 fontSize = 18.sp,
                 minLines = 2
             )
-
             Spacer(Modifier.height(24.dp))
             PlayerStatsSection(player)
             Spacer(Modifier.height(32.dp))
-
             if (player.health <= 0) {
                 Text(
                     text = "GAME OVER",
@@ -413,9 +394,7 @@ fun PlayerStatsSection(player: Player) {
                 .height(10.dp)
                 .fillMaxWidth()
         )
-
         Spacer(Modifier.height(8.dp))
-
         Text(
             text = "Mana: ${player.mana}",
             color = Color.Cyan

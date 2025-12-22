@@ -32,7 +32,8 @@ class DataManager(private val context: Context) {
     private val listOfEnemies = mutableStateListOf<Enemy>(
         Enemy("Slime", 10, 25, 3, 1, 1),
         Enemy("Wolf", 12, 30, 4, 2, 2),
-        Enemy("Goblin", 15, 40, 4, 1, 5)
+        Enemy("Goblin", 15, 40, 4, 1, 5),
+        Enemy("BOSS SLIME", 10000, 10000, 10000, 10000, 10000)
     )
     private val listOfSpells = listOf<Spells>(
         Spells("Fireball", 10, 10),
